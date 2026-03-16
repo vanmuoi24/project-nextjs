@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { products } from "@/data/products";
-import type { CategoryId } from "@/data/categories";
+import { productsApi } from "@/lib/api";
+import type { ProductResponse } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import FilterSidebar from "@/components/FilterSidebar";
 import SearchBar from "@/components/SearchBar";
@@ -16,11 +16,18 @@ const priceRangeMap: Record<string, { min: number; max: number }> = {
   over30: { min: 30_000_000, max: Infinity },
 };
 
+/** Brand hiển thị trên card = categoryRelation?.name hoặc category */
+function productBrand(p: ProductResponse): string {
+  return p.categoryRelation?.name ?? p.category ?? "";
+}
+
 export default function ShopContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
-  const categoryFromUrl = searchParams.get("category") as CategoryId | null;
+  const categoryFromUrl = searchParams.get("category");
 
+  const [productsList, setProductsList] = useState<ProductResponse[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(q);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryFromUrl);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
@@ -28,24 +35,43 @@ export default function ShopContent() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await productsApi.getAll();
+        setProductsList(data ?? []);
+      } catch {
+        setProductsList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
     setSearchQuery(q);
   }, [q]);
 
   const filteredProducts = useMemo(() => {
-    let list = [...products];
+    let list = [...productsList];
 
     if (searchQuery.trim()) {
       const lower = searchQuery.trim().toLowerCase();
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(lower) ||
-          p.brand.toLowerCase().includes(lower) ||
+          productBrand(p).toLowerCase().includes(lower) ||
           p.description.toLowerCase().includes(lower)
       );
     }
 
     if (selectedCategory) {
-      list = list.filter((p) => p.category === selectedCategory);
+      list = list.filter(
+        (p) =>
+          p.category === selectedCategory ||
+          p.categoryRelation?.slug === selectedCategory ||
+          String(p.categoryRelation?.id) === selectedCategory
+      );
     }
 
     if (selectedPriceRange && selectedPriceRange !== "all") {
@@ -56,11 +82,11 @@ export default function ShopContent() {
     }
 
     if (selectedBrands.length > 0) {
-      list = list.filter((p) => selectedBrands.includes(p.brand));
+      list = list.filter((p) => selectedBrands.includes(productBrand(p)));
     }
 
     return list;
-  }, [searchQuery, selectedCategory, selectedPriceRange, selectedBrands]);
+  }, [productsList, searchQuery, selectedCategory, selectedPriceRange, selectedBrands]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = useMemo(() => {
@@ -108,7 +134,13 @@ export default function ShopContent() {
             Hiển thị {paginatedProducts.length} / {filteredProducts.length} sản phẩm
           </p>
 
-          {paginatedProducts.length === 0 ? (
+          {loading ? (
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-[4/3] animate-pulse rounded-2xl bg-slate-200" />
+              ))}
+            </div>
+          ) : paginatedProducts.length === 0 ? (
             <div className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
               <p className="text-slate-600">Không tìm thấy sản phẩm phù hợp.</p>
               <p className="mt-1 text-sm text-slate-500">Thử thay đổi bộ lọc hoặc từ khóa.</p>

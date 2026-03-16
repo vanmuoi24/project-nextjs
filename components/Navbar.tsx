@@ -1,19 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import SearchBar from "./SearchBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
   { href: "/shop", label: "Cửa hàng" },
   { href: "/cart", label: "Giỏ hàng" },
   { href: "/profile", label: "Tài khoản" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export default function Navbar() {
+  const { user, loading, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -59,12 +74,60 @@ export default function Navbar() {
               0
             </span>
           </Link>
-          <Link
-            href="/login"
-            className="hidden rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 sm:inline-block"
-          >
-            Đăng nhập
-          </Link>
+
+          {!loading && (
+            <>
+              {user ? (
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:flex"
+                  >
+                    <span className="max-w-[120px] truncate">
+                      {user.name || user.email}
+                    </span>
+                    <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                      <div className="border-b border-slate-100 px-3 py-2">
+                        <p className="truncate text-sm font-medium text-slate-800">{user.name}</p>
+                        <p className="truncate text-xs text-slate-500">{user.email}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                      >
+                        Tài khoản
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logout();
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="hidden rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 sm:inline-block"
+                >
+                  Đăng nhập
+                </Link>
+              )}
+            </>
+          )}
+
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -101,13 +164,39 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg bg-emerald-600 px-3 py-2 text-center font-medium text-white"
-            >
-              Đăng nhập
-            </Link>
+            {user ? (
+              <>
+                <div className="border-t border-slate-100 px-3 py-2">
+                  <p className="text-sm font-medium text-slate-800">{user.name || user.email}</p>
+                  <p className="text-xs text-slate-500">{user.email}</p>
+                </div>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-50"
+                >
+                  Tài khoản
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50"
+                >
+                  Đăng xuất
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg bg-emerald-600 px-3 py-2 text-center font-medium text-white"
+              >
+                Đăng nhập
+              </Link>
+            )}
           </nav>
         </div>
       )}

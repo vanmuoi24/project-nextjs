@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 interface ProductGalleryProps {
@@ -12,17 +11,16 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const currentImage = images[selectedIndex] ?? images[0];
 
+  if (!images.length || !currentImage) {
+    return (
+      <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100" />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-        <Image
-          src={currentImage}
-          alt={alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
-          priority
-        />
+      <img src={currentImage} alt={alt} />
       </div>
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-2">
@@ -37,7 +35,7 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
                   : "border-slate-200 hover:border-slate-300"
               }`}
             >
-              <Image src={src} alt={`${alt} ${i + 1}`} fill className="object-cover" sizes="80px" />
+              <img src={src} alt={`${alt} ${i + 1}`} />
             </button>
           ))}
         </div>
