@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import SearchBar from "./SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -13,11 +14,9 @@ const navLinks = [
   { href: "/admin", label: "Admin" },
 ];
 
-import { useCart } from "@/contexts/CartContext";
-
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
-  const { totalItems } = useCart();
+  const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -58,7 +57,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setSearchOpen(!searchOpen)}
-            className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-emerald-600"
+            className="cursor-pointer rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-emerald-600"
             aria-label="Tìm kiếm"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,11 +72,9 @@ export default function Navbar() {
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            {totalItems > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-medium text-white">
-                {totalItems}
-              </span>
-            )}
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-medium text-white">
+              {cartCount}
+            </span>
           </Link>
 
           {!loading && (
@@ -87,7 +84,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:flex"
+                    className="hidden cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:flex"
                   >
                     <span className="max-w-[120px] truncate">
                       {user.name || user.email}
@@ -115,7 +112,7 @@ export default function Navbar() {
                           logout();
                           setUserMenuOpen(false);
                         }}
-                        className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                        className="w-full cursor-pointer px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                       >
                         Đăng xuất
                       </button>
@@ -136,7 +133,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-full p-2 text-slate-600 md:hidden"
+            className="cursor-pointer rounded-full p-2 text-slate-600 md:hidden"
             aria-label="Menu"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

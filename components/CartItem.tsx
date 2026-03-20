@@ -50,20 +50,20 @@ export default function CartItem({
             <button
               type="button"
               onClick={onDecrease}
-              className="flex h-9 w-9 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800"
               aria-label="Giảm số lượng"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
               </svg>
             </button>
-            <span className="min-w-[2rem] text-center text-sm font-medium">
+            <span className="min-w-8 text-center text-sm font-medium">
               {quantity}
             </span>
             <button
               type="button"
               onClick={onIncrease}
-              className="flex h-9 w-9 items-center justify-center text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800"
               aria-label="Tăng số lượng"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@ export default function CartItem({
           <button
             type="button"
             onClick={onRemove}
-            className="text-sm text-red-600 transition-colors hover:text-red-700 hover:underline"
+            className="cursor-pointer text-sm text-red-600 transition-colors hover:text-red-700 hover:underline"
           >
             Xóa
           </button>

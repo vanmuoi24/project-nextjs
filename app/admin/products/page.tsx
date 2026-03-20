@@ -98,13 +98,8 @@ export default function AdminProductsPage() {
                     <td className="p-3">
                       <div className="relative h-12 w-16 overflow-hidden rounded bg-slate-100">
                         {p.imageUrl ? (
-                          <Image
-                            src={p.imageUrl}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="64px"
-                          />
+                           <img src={p.imageUrl} />
+     
                         ) : null}
                       </div>
                     </td>

@@ -1,12 +1,13 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { productsApi } from '@/lib/api';
 import type { ProductResponse } from '@/lib/api';
 import ProductGallery from '@/components/ProductGallery';
 import ProductCard from '@/components/ProductCard';
+import { useCart } from '@/contexts/CartContext';
 
 function formatPrice(price: number) {
 	return new Intl.NumberFormat('vi-VN', {
@@ -18,9 +19,9 @@ function formatPrice(price: number) {
 
 export default function ProductPage() {
 	const params = useParams();
-	const router = useRouter();
 	const id = params.id as string;
 	const idNum = Number(id);
+	const { addItem } = useCart();
 
 	const [product, setProduct] = useState<ProductResponse | null>(null);
 	const [related, setRelated] = useState<ProductResponse[]>([]);
@@ -64,8 +65,21 @@ export default function ProductPage() {
 		fetchRelated();
 	}, [product]);
 
+	const [success, setSuccess] = useState(false);
+
+	useEffect(() => {
+		let timeout: NodeJS.Timeout;
+		if (success) {
+			timeout = setTimeout(() => setSuccess(false), 3000);
+		}
+		return () => clearTimeout(timeout);
+	}, [success]);
+
 	const addToCart = () => {
-		router.push('/cart');
+		if (product) {
+			addItem(product, quantity);
+			setSuccess(true);
+		}
 	};
 
 	const categoryName =
@@ -141,7 +155,7 @@ export default function ProductPage() {
 							<button
 								type='button'
 								onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-								className='flex h-10 w-10 items-center justify-center text-slate-600 hover:bg-slate-200'
+								className='flex h-10 w-10 cursor-pointer items-center justify-center text-slate-600 hover:bg-slate-200'
 							>
 								<svg
 									className='h-4 w-4'
@@ -163,7 +177,7 @@ export default function ProductPage() {
 							<button
 								type='button'
 								onClick={() => setQuantity((q) => q + 1)}
-								className='flex h-10 w-10 items-center justify-center text-slate-600 hover:bg-slate-200'
+								className='flex h-10 w-10 cursor-pointer items-center justify-center text-slate-600 hover:bg-slate-200'
 							>
 								<svg
 									className='h-4 w-4'
@@ -183,7 +197,7 @@ export default function ProductPage() {
 						<button
 							type='button'
 							onClick={addToCart}
-							className='rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700'
+							className='cursor-pointer rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700'
 						>
 							Thêm vào giỏ hàng
 						</button>
@@ -214,6 +228,83 @@ export default function ProductPage() {
 						))}
 					</div>
 				</section>
+			)}
+
+			{/* Thông báo thêm vào giỏ hàng thành công (Phiên bản nổi bật hơn) */}
+			{success && (
+				<div className='fixed bottom-6 right-6 z-[100] flex min-w-[360px] transform items-center gap-4 overflow-hidden rounded-2xl border-2 border-emerald-500/20 bg-white/90 p-5 shadow-[0_20px_50px_rgba(16,185,129,0.2)] backdrop-blur-xl transition-all duration-500 animate-in fade-in slide-in-from-right-10'>
+					{/* Glow effect background */}
+					<div className='absolute -left-10 -top-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl' />
+
+					<div className='relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/40'>
+						<svg
+							className='h-8 w-8'
+							fill='none'
+							stroke='currentColor'
+							viewBox='0 0 24 24'
+						>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth={3}
+								d='M5 13l4 4L19 7'
+							/>
+						</svg>
+					</div>
+
+					<div className='relative flex-1'>
+						<h3 className='text-base font-extrabold text-slate-900'>
+							Tuyệt vời!
+						</h3>
+						<p className='mt-0.5 text-sm font-medium text-slate-600 line-clamp-1'>
+							Đã thêm {product.name} x {quantity}
+						</p>
+						<div className='mt-2 flex items-center gap-3'>
+							<Link
+								href='/cart'
+								className='text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline'
+							>
+								Xem giỏ hàng ngay
+							</Link>
+						</div>
+					</div>
+
+					<button
+						type='button'
+						onClick={() => setSuccess(false)}
+						className='relative -top-6 ml-2 cursor-pointer rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600'
+					>
+						<svg
+							className='h-5 w-5'
+							fill='none'
+							stroke='currentColor'
+							viewBox='0 0 24 24'
+						>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth={2}
+								d='M6 18L18 6M6 6l12 12'
+							/>
+						</svg>
+					</button>
+
+					{/* Progress bar animation */}
+					<div
+						className='absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-[3000ms] ease-linear group-data-[state=open]:w-full'
+						style={{ width: '100%', animation: 'shrink 3s linear forwards' }}
+					/>
+					<style jsx>{`
+						@keyframes shrink {
+							from {
+								width: 100%;
+							}
+							to {
+								width: 0%;
+							}
+						}
+					`}</style>
+				</div>
 			)}
 		</div>
 	);

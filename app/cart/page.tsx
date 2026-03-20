@@ -1,8 +1,8 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import Link from "next/link";
 import CartItem from "@/components/CartItem";
+import Link from "next/link";
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -13,19 +13,16 @@ function formatPrice(price: number) {
 }
 
 export default function CartPage() {
-  const { items, updateQuantity, removeFromCart } = useCart();
+  const { items, updateQuantity, removeItem, totalPrice, cartCount } = useCart();
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
-    0
-  );
-  
-  const shipping = items.length > 0 ? 50000 : 0;
-  const total = subtotal + shipping;
+  const shipping = 50000;
+  const total = totalPrice + shipping;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Giỏ hàng</h1>
+      <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
+        Giỏ hàng ({cartCount})
+      </h1>
       <p className="mt-1 text-slate-600">Kiểm tra và chỉnh sửa giỏ hàng của bạn</p>
 
       {items.length === 0 ? (
@@ -40,23 +37,41 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="mt-8 gap-8 lg:grid lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
-            {items.map((item) => (
-              item.product && (
-                <CartItem
-                  key={item.productId}
-                  product={{
-                    ...item.product,
-                    id: String(item.product.id), // Compatibility with CartItem component if needed
-                    image: item.product.imageUrl || "/placeholder.png" // Compatibility
-                  } as any}
-                  quantity={item.quantity}
-                  onIncrease={() => updateQuantity(item.productId, item.quantity + 1)}
-                  onDecrease={() => updateQuantity(item.productId, item.quantity - 1)}
-                  onRemove={() => removeFromCart(item.productId)}
-                />
-              )
-            ))}
+          <div className="lg:col-span-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 shadow-inner">
+              <div className="space-y-4 max-h-[480px] overflow-y-auto pr-2 custom-scrollbar">
+                {items.map(({ product, quantity }) => (
+                  <CartItem
+                    key={product.id}
+                    product={{
+                      ...product,
+                      image: product.imageUrl, // Map imageUrl to image for CartItem component
+                      brand: product.categoryRelation?.name || product.category || ""
+                    } as any}
+                    quantity={quantity}
+                    onIncrease={() => updateQuantity(product.id, 1)}
+                    onDecrease={() => updateQuantity(product.id, -1)}
+                    onRemove={() => removeItem(product.id)}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <style jsx>{`
+              .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #e2e8f0;
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #cbd5e1;
+              }
+            `}</style>
           </div>
 
           <div className="mt-8 lg:mt-0">
@@ -65,7 +80,7 @@ export default function CartPage() {
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-slate-500">Tạm tính</dt>
-                  <dd className="font-medium text-slate-800">{formatPrice(subtotal)}</dd>
+                  <dd className="font-medium text-slate-800">{formatPrice(totalPrice)}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-slate-500">Phí vận chuyển</dt>
@@ -78,13 +93,13 @@ export default function CartPage() {
               </dl>
               <Link
                 href="/checkout"
-                className="mt-6 block w-full rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white transition-colors hover:bg-emerald-700"
+                className="mt-6 block w-full cursor-pointer rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white transition-colors hover:bg-emerald-700"
               >
                 Thanh toán
               </Link>
               <Link
                 href="/shop"
-                className="mt-3 block text-center text-sm text-emerald-600 hover:underline"
+                className="mt-3 block cursor-pointer text-center text-sm text-emerald-600 hover:underline"
               >
                 Tiếp tục mua sắm
               </Link>

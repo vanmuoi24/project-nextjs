@@ -1,72 +1,139 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authApi } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // ✅ Validate
+    if (!name || !email || !password || !confirmPassword) {
+      setError("Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const response = await authApi.register({
+        name,
+        email,
+        password,
+      });
+
+      // 🔥 giống login luôn
+     
+
+
+
+      router.push("/");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Đăng ký thất bại");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6 lg:py-16">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-2xl font-bold text-slate-800">Đăng ký</h1>
         <p className="mt-1 text-slate-600">Tạo tài khoản mới tại BikeShop</p>
 
-        <form className="mt-8 space-y-6">
+        {error && (
+          <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+
+          {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-slate-700">
               Họ và tên
             </label>
             <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-xl border px-4 py-3"
               placeholder="Nguyễn Văn A"
             />
           </div>
+
+          {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-slate-700">
               Email
             </label>
             <input
-              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               type="email"
-              autoComplete="email"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="mt-1 w-full rounded-xl border px-4 py-3"
               placeholder="email@example.com"
             />
           </div>
+
+          {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-slate-700">
               Mật khẩu
             </label>
             <input
-              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="mt-1 w-full rounded-xl border px-4 py-3"
               placeholder="••••••••"
             />
           </div>
+
+          {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-slate-700">
               Xác nhận mật khẩu
             </label>
             <input
-              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               type="password"
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="mt-1 w-full rounded-xl border px-4 py-3"
               placeholder="••••••••"
             />
           </div>
+
           <button
             type="submit"
-            className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white transition-colors hover:bg-emerald-700"
+            disabled={submitting}
+            className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white"
           >
-            Đăng ký
+            {submitting ? "Đang đăng ký..." : "Đăng ký"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Đã có tài khoản?{" "}
-          <Link href="/login" className="font-medium text-emerald-600 hover:underline">
+          <Link href="/login" className="text-emerald-600">
             Đăng nhập
           </Link>
         </p>

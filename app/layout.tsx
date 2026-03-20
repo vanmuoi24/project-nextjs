@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -19,8 +20,6 @@ export const metadata: Metadata = {
   title: "BikeShop - Xe đạp chính hãng",
   description: "Mua xe đạp địa hình, đường phố, thể thao, trẻ em. Giao hàng toàn quốc.",
 };
-
-import { CartProvider } from "@/contexts/CartContext";
 
 export default function RootLayout({
   children,
