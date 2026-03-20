@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "Mua xe đạp địa hình, đường phố, thể thao, trẻ em. Giao hàng toàn quốc.",
 };
 
+import { CartProvider } from "@/contexts/CartContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,9 +31,11 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased flex flex-col`} suppressHydrationWarning>
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,13 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useCart } from "@/contexts/CartContext";
 import Link from "next/link";
-import { products } from "@/data/products";
-
-const demoCart = [
-  { productId: "1", quantity: 2 },
-  { productId: "4", quantity: 1 },
-];
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -18,20 +13,14 @@ function formatPrice(price: number) {
 }
 
 export default function CheckoutPage() {
+  const { items } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank" | "momo">("cod");
 
-  const cartProducts = demoCart
-    .map((item) => {
-      const product = products.find((p) => p.id === item.productId);
-      return product ? { product, quantity: item.quantity } : null;
-    })
-    .filter(Boolean) as { product: (typeof products)[0]; quantity: number }[];
-
-  const subtotal = cartProducts.reduce(
-    (sum, { product, quantity }) => sum + product.price * quantity,
+  const subtotal = items.reduce(
+    (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
     0
   );
-  const shipping = 50000;
+  const shipping = items.length > 0 ? 50000 : 0;
   const total = subtotal + shipping;
 
   return (
@@ -41,6 +30,7 @@ export default function CheckoutPage() {
 
       <form className="mt-8 gap-8 lg:grid lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
+          {/* ... existing fields ... */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="font-semibold text-slate-800">Thông tin khách hàng</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -163,15 +153,17 @@ export default function CheckoutPage() {
           <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="font-semibold text-slate-800">Tóm tắt đơn hàng</h2>
             <ul className="mt-4 space-y-3 border-b border-slate-200 pb-4">
-              {cartProducts.map(({ product, quantity }) => (
-                <li key={product.id} className="flex justify-between text-sm">
-                  <span className="text-slate-600">
-                    {product.name} × {quantity}
-                  </span>
-                  <span className="font-medium text-slate-800">
-                    {formatPrice(product.price * quantity)}
-                  </span>
-                </li>
+              {items.map((item) => (
+                item.product && (
+                  <li key={item.productId} className="flex justify-between text-sm">
+                    <span className="text-slate-600">
+                      {item.product.name} × {item.quantity}
+                    </span>
+                    <span className="font-medium text-slate-800">
+                      {formatPrice(item.product.price * item.quantity)}
+                    </span>
+                  </li>
+                )
               ))}
             </ul>
             <dl className="mt-4 space-y-2 text-sm">

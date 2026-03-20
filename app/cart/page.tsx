@@ -1,15 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCart } from "@/contexts/CartContext";
 import Link from "next/link";
-import { products } from "@/data/products";
 import CartItem from "@/components/CartItem";
-
-// Demo cart: 2 items
-const demoCart = [
-  { productId: "1", quantity: 2 },
-  { productId: "4", quantity: 1 },
-];
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -20,36 +13,14 @@ function formatPrice(price: number) {
 }
 
 export default function CartPage() {
-  const [items, setItems] = useState(demoCart);
+  const { items, updateQuantity, removeFromCart } = useCart();
 
-  const cartProducts = items
-    .map((item) => {
-      const product = products.find((p) => p.id === item.productId);
-      return product ? { product, quantity: item.quantity } : null;
-    })
-    .filter(Boolean) as { product: (typeof products)[0]; quantity: number }[];
-
-  const updateQuantity = (productId: string, delta: number) => {
-    setItems((prev) =>
-      prev
-        .map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
-  };
-
-  const subtotal = cartProducts.reduce(
-    (sum, { product, quantity }) => sum + product.price * quantity,
+  const subtotal = items.reduce(
+    (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
     0
   );
-  const shipping = 50000;
+  
+  const shipping = items.length > 0 ? 50000 : 0;
   const total = subtotal + shipping;
 
   return (
@@ -57,7 +28,7 @@ export default function CartPage() {
       <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Giỏ hàng</h1>
       <p className="mt-1 text-slate-600">Kiểm tra và chỉnh sửa giỏ hàng của bạn</p>
 
-      {cartProducts.length === 0 ? (
+      {items.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
           <p className="text-slate-600">Giỏ hàng trống.</p>
           <Link
@@ -70,15 +41,21 @@ export default function CartPage() {
       ) : (
         <div className="mt-8 gap-8 lg:grid lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
-            {cartProducts.map(({ product, quantity }) => (
-              <CartItem
-                key={product.id}
-                product={product}
-                quantity={quantity}
-                onIncrease={() => updateQuantity(product.id, 1)}
-                onDecrease={() => updateQuantity(product.id, -1)}
-                onRemove={() => removeItem(product.id)}
-              />
+            {items.map((item) => (
+              item.product && (
+                <CartItem
+                  key={item.productId}
+                  product={{
+                    ...item.product,
+                    id: String(item.product.id), // Compatibility with CartItem component if needed
+                    image: item.product.imageUrl || "/placeholder.png" // Compatibility
+                  } as any}
+                  quantity={item.quantity}
+                  onIncrease={() => updateQuantity(item.productId, item.quantity + 1)}
+                  onDecrease={() => updateQuantity(item.productId, item.quantity - 1)}
+                  onRemove={() => removeFromCart(item.productId)}
+                />
+              )
             ))}
           </div>
 
