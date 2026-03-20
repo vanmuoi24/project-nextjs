@@ -115,16 +115,16 @@ export default function ProfileOrderDetailPage() {
                   {item.productName ?? `#${item.productId}`}
                 </td>
                 <td className="py-2 pr-2 text-right text-slate-600">{item.quantity}</td>
-                <td className="py-2 pr-2 text-right text-slate-600">{formatPrice(item.price)}</td>
+                <td className="py-2 pr-2 text-right text-slate-600">{formatPrice(item.totalPrice)}</td>
                 <td className="py-2 text-right font-medium text-slate-800">
-                  {formatPrice(item.subtotal ?? item.price * item.quantity)}
+                  {formatPrice(item.subtotal ?? item.totalPrice * item.quantity)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="mt-3 flex justify-end gap-2 border-t border-slate-200 pt-3 text-base font-semibold text-slate-800">
-          Tổng cộng: <span className="text-emerald-600">{formatPrice(order.total)}</span>
+          Tổng cộng: <span className="text-emerald-600">{formatPrice(order.totalAmount)}</span>
         </p>
       </div>
     </div>

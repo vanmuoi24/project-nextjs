@@ -10,25 +10,47 @@ const navLinks = [
   { href: "/shop", label: "Cửa hàng" },
   { href: "/cart", label: "Giỏ hàng" },
   { href: "/profile", label: "Tài khoản" },
-  { href: "/admin", label: "Admin" },
 ];
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
+
+  // ✅ FIX: dùng state thay vì gọi trực tiếp localStorage
+  const [userLoginData, setUserLoginData] = useState<any>(null);
+
+  useEffect(() => {
+    const userLogin = localStorage.getItem("user");
+    if (userLogin) {
+      setUserLoginData(JSON.parse(userLogin));
+    }
+  }, []);
+
+  // ✅ ưu tiên user từ context
+  const currentUser = user || userLoginData;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  // ✅ FIX: dùng mousedown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // ✅ FIX: normalize role
+  const isAdmin =
+    currentUser?.role?.toLowerCase() === "admin";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -62,6 +84,7 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
+
           <Link
             href="/cart"
             className="relative rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-emerald-600"
@@ -77,7 +100,7 @@ export default function Navbar() {
 
           {!loading && (
             <>
-              {user ? (
+              {currentUser ? (
                 <div className="relative" ref={userMenuRef}>
                   <button
                     type="button"
@@ -85,18 +108,24 @@ export default function Navbar() {
                     className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:flex"
                   >
                     <span className="max-w-[120px] truncate">
-                      {user.name || user.email}
+                      {currentUser.name || currentUser.email}
                     </span>
                     <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
+
                   {userMenuOpen && (
                     <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
                       <div className="border-b border-slate-100 px-3 py-2">
-                        <p className="truncate text-sm font-medium text-slate-800">{user.name}</p>
-                        <p className="truncate text-xs text-slate-500">{user.email}</p>
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {currentUser.name}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {currentUser.email}
+                        </p>
                       </div>
+
                       <Link
                         href="/profile"
                         onClick={() => setUserMenuOpen(false)}
@@ -104,6 +133,17 @@ export default function Navbar() {
                       >
                         Tài khoản
                       </Link>
+
+                      {/* ✅ FIX admin */}
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="block px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                        >
+                          Quản lý Admin
+                        </Link>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => {
@@ -164,12 +204,18 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {user ? (
+
+            {currentUser ? (
               <>
                 <div className="border-t border-slate-100 px-3 py-2">
-                  <p className="text-sm font-medium text-slate-800">{user.name || user.email}</p>
-                  <p className="text-xs text-slate-500">{user.email}</p>
+                  <p className="text-sm font-medium text-slate-800">
+                    {currentUser.name || currentUser.email}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {currentUser.email}
+                  </p>
                 </div>
+
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
@@ -177,6 +223,16 @@ export default function Navbar() {
                 >
                   Tài khoản
                 </Link>
+
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-50"
+                  >
+                    Quản lý Admin
+                  </Link>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {

@@ -2,10 +2,10 @@ import Link from "next/link";
 
 const navItems = [
   { href: "/admin", label: "Tổng quan" },
-  { href: "/admin/orders", label: "Đơn hàng" },
-  { href: "/admin/users", label: "Người dùng" },
-  { href: "/admin/products", label: "Sản phẩm" },
-  { href: "/admin/categories", label: "Danh mục" },
+  { href: "/admin/orders", label: "Quản lý đơn hàng" },
+
+  { href: "/admin/products", label: "Quản lý sản phẩm" },
+  { href: "/admin/categories", label: "Quản lý danh mục" },
 ];
 
 export default function AdminLayout({

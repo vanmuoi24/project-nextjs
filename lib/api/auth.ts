@@ -43,7 +43,7 @@ export interface RegisterUserDto {
  * Response từ POST /auth/login (NestJS JWT thường trả access_token)
  */
 export interface LoginResponse {
-  access_token: string;
+  accessToken: string;
   user?: UserResponse;
 }
 

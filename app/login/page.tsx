@@ -20,15 +20,15 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const response = await authApi.login({ email, password });
-      const token = response.data.access_token;
-      const user = response.data.user ?? null;
-      await login(token, user);
-      router.push("/");
-    } catch {
-      setError("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
-    } finally {
-      setSubmitting(false);
-    }
+   console.log(response.data);
+   localStorage.setItem("token", response.data.accessToken);
+   localStorage.setItem("user", JSON.stringify(response.data.user));
+   router.push("/");
+
+   } catch (error) {
+    console.log(error);
+    setError("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
+   }
   };
 
   return (

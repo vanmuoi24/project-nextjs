@@ -14,7 +14,7 @@ export interface OrderItemResponse {
   productId: number;
   productName?: string;
   quantity: number;
-  price: number;
+  totalPrice: number;
   /** price * quantity */
   subtotal?: number;
 }
@@ -28,7 +28,7 @@ export interface OrderResponse {
   shippingAddress?: string;
   phone?: string;
   status: OrderStatus;
-  total: number;
+  totalAmount: number;
   items: OrderItemResponse[];
   createdAt: string;
   updatedAt: string;
