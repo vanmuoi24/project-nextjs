@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { productsApi } from "@/lib/api";
 import type { ProductResponse } from "@/lib/api";
@@ -16,12 +16,12 @@ const priceRangeMap: Record<string, { min: number; max: number }> = {
   over30: { min: 30_000_000, max: Infinity },
 };
 
-/** Brand hiển thị trên card = categoryRelation?.name hoặc category */
-function productBrand(p: ProductResponse): string {
+/** Brand hiển thị trên card = categoryRelation?.name hoặc category  */
+function getProductBrand(p: ProductResponse): string {
   return p.categoryRelation?.name ?? p.category ?? "";
 }
 
-export default function ShopContent() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
   const categoryFromUrl = searchParams.get("category");
@@ -37,9 +37,11 @@ export default function ShopContent() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const { data } = await productsApi.getAll();
         setProductsList(data ?? []);
-      } catch {
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
         setProductsList([]);
       } finally {
         setLoading(false);
@@ -50,42 +52,44 @@ export default function ShopContent() {
 
   useEffect(() => {
     setSearchQuery(q);
-  }, [q]);
+    setSelectedCategory(categoryFromUrl);
+    setCurrentPage(1); // Reset trang khi URL thay đổi
+  }, [q, categoryFromUrl]);
+
 
   const filteredProducts = useMemo(() => {
-    let list = [...productsList];
-
-    if (searchQuery.trim()) {
-      const lower = searchQuery.trim().toLowerCase();
-      list = list.filter(
-        (p) =>
+    return productsList.filter((p) => {
+      if (searchQuery.trim()) {
+        const lower = searchQuery.trim().toLowerCase();
+        const matchesSearch =
           p.name.toLowerCase().includes(lower) ||
-          productBrand(p).toLowerCase().includes(lower) ||
-          p.description.toLowerCase().includes(lower)
-      );
-    }
+          getProductBrand(p).toLowerCase().includes(lower) ||
+          p.description?.toLowerCase().includes(lower);
+        if (!matchesSearch) return false;
+      }
 
-    if (selectedCategory) {
-      list = list.filter(
-        (p) =>
+      // Lọc theo category
+      if (selectedCategory) {
+        const matchesCat =
           p.category === selectedCategory ||
           p.categoryRelation?.slug === selectedCategory ||
-          String(p.categoryRelation?.id) === selectedCategory
-      );
-    }
-
-    if (selectedPriceRange && selectedPriceRange !== "all") {
-      const range = priceRangeMap[selectedPriceRange];
-      if (range) {
-        list = list.filter((p) => p.price >= range.min && p.price < range.max);
+          String(p.categoryRelation?.id) === selectedCategory;
+        if (!matchesCat) return false;
       }
-    }
 
-    if (selectedBrands.length > 0) {
-      list = list.filter((p) => selectedBrands.includes(productBrand(p)));
-    }
+      // Lọc theo giá
+      if (selectedPriceRange && selectedPriceRange !== "all") {
+        const range = priceRangeMap[selectedPriceRange];
+        if (range && (p.price < range.min || p.price >= range.max)) return false;
+      }
 
-    return list;
+      // Lọc theo thương hiệu
+      if (selectedBrands.length > 0) {
+        if (!selectedBrands.includes(getProductBrand(p))) return false;
+      }
+
+      return true;
+    });
   }, [productsList, searchQuery, selectedCategory, selectedPriceRange, selectedBrands]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -130,6 +134,7 @@ export default function ShopContent() {
           <div className="hidden lg:block">
             <SearchBar initialQuery={searchQuery} />
           </div>
+          
           <p className="mt-4 text-sm text-slate-500">
             Hiển thị {paginatedProducts.length} / {filteredProducts.length} sản phẩm
           </p>
@@ -142,8 +147,30 @@ export default function ShopContent() {
             </div>
           ) : paginatedProducts.length === 0 ? (
             <div className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
-              <p className="text-slate-600">Không tìm thấy sản phẩm phù hợp.</p>
-              <p className="mt-1 text-sm text-slate-500">Thử thay đổi bộ lọc hoặc từ khóa.</p>
+              
+              <div className="text-6xl mb-3 opacity-70">🔍</div>
+              
+              <p className="text-slate-600 font-medium">
+                Không tìm thấy sản phẩm phù hợp.
+              </p>
+              
+              <p className="mt-1 text-sm text-slate-500">
+                Thử thay đổi bộ lọc hoặc từ khóa.
+              </p>
+
+              <button
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setSelectedPriceRange(null);
+                  setSelectedBrands([]);
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition hover:bg-emerald-700"
+              >
+                🧹 Xóa bộ lọc
+              </button>
+
             </div>
           ) : (
             <>
@@ -163,6 +190,7 @@ export default function ShopContent() {
                   >
                     Trước
                   </button>
+                  
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
@@ -177,6 +205,7 @@ export default function ShopContent() {
                       {page}
                     </button>
                   ))}
+
                   <button
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -192,5 +221,18 @@ export default function ShopContent() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Next.js App Router yêu cầu bọc useSearchParams trong Suspense
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }
