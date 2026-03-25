@@ -102,7 +102,24 @@ export default function ProductPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <nav className="mb-8 text-sm text-slate-500">
+      <div className="mb-6">
+        <button
+          onClick={() => router.push("/shop")}
+          className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600 hover:underline"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Quay lại cửa hàng
+        </button>
+        </div>
+
+      <nav className="mb-8 text-sm text-slate-500"> 
         <Link href="/" className="hover:text-emerald-600">Trang chủ</Link>
         <span className="mx-2">/</span>
         <Link href="/shop" className="hover:text-emerald-600">Cửa hàng</Link>
