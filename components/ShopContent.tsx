@@ -16,7 +16,6 @@ const priceRangeMap: Record<string, { min: number; max: number }> = {
   over30: { min: 30_000_000, max: Infinity },
 };
 
-/** Brand hiển thị trên card = categoryRelation?.name hoặc category  */
 function getProductBrand(p: ProductResponse): string {
   return p.categoryRelation?.name ?? p.category ?? "";
 }
@@ -28,34 +27,40 @@ function ShopContent() {
 
   const [productsList, setProductsList] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); //NEW
+
   const [searchQuery, setSearchQuery] = useState(q);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryFromUrl);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Task 5: Fetch API + error handling
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const { data } = await productsApi.getAll();
         setProductsList(data ?? []);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError("Không thể tải danh sách sản phẩm. Vui lòng thử lại.");
         setProductsList([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchProducts();
   }, []);
 
   useEffect(() => {
     setSearchQuery(q);
     setSelectedCategory(categoryFromUrl);
-    setCurrentPage(1); // Reset trang khi URL thay đổi
+    setCurrentPage(1);
   }, [q, categoryFromUrl]);
-
 
   const filteredProducts = useMemo(() => {
     return productsList.filter((p) => {
@@ -64,11 +69,10 @@ function ShopContent() {
         const matchesSearch =
           p.name.toLowerCase().includes(lower) ||
           getProductBrand(p).toLowerCase().includes(lower) ||
-          p.description?.toLowerCase().includes(lower);
+          (p.description ?? "").toLowerCase().includes(lower);
         if (!matchesSearch) return false;
       }
 
-      // Lọc theo category
       if (selectedCategory) {
         const matchesCat =
           p.category === selectedCategory ||
@@ -77,13 +81,11 @@ function ShopContent() {
         if (!matchesCat) return false;
       }
 
-      // Lọc theo giá
       if (selectedPriceRange && selectedPriceRange !== "all") {
         const range = priceRangeMap[selectedPriceRange];
         if (range && (p.price < range.min || p.price >= range.max)) return false;
       }
 
-      // Lọc theo thương hiệu
       if (selectedBrands.length > 0) {
         if (!selectedBrands.includes(getProductBrand(p))) return false;
       }
@@ -105,10 +107,26 @@ function ShopContent() {
     setCurrentPage(1);
   }, []);
 
+  const resetFilters = () => {
+    setSelectedCategory(null);
+    setSelectedPriceRange(null);
+    setSelectedBrands([]);
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">Cửa hàng</h1>
       <p className="mt-1 text-slate-600">Tìm xe đạp phù hợp với bạn</p>
+
+      {/*HIỂN THỊ LỖI */}
+      {error && (
+        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50 py-6 text-center">
+          <div className="text-4xl mb-2">⚠️</div>
+          <p className="text-red-600 font-medium">{error}</p>
+        </div>
+      )}
 
       <div className="mt-6 lg:hidden">
         <SearchBar initialQuery={searchQuery} />
@@ -134,7 +152,7 @@ function ShopContent() {
           <div className="hidden lg:block">
             <SearchBar initialQuery={searchQuery} />
           </div>
-          
+
           <p className="mt-4 text-sm text-slate-500">
             Hiển thị {paginatedProducts.length} / {filteredProducts.length} sản phẩm
           </p>
@@ -147,30 +165,20 @@ function ShopContent() {
             </div>
           ) : paginatedProducts.length === 0 ? (
             <div className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
-              
               <div className="text-6xl mb-3 opacity-70">🔍</div>
-              
               <p className="text-slate-600 font-medium">
                 Không tìm thấy sản phẩm phù hợp.
               </p>
-              
               <p className="mt-1 text-sm text-slate-500">
                 Thử thay đổi bộ lọc hoặc từ khóa.
               </p>
 
               <button
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setSelectedPriceRange(null);
-                  setSelectedBrands([]);
-                  setSearchQuery("");
-                  setCurrentPage(1);
-                }}
+                onClick={resetFilters}
                 className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition hover:bg-emerald-700"
               >
                 🧹 Xóa bộ lọc
               </button>
-
             </div>
           ) : (
             <>
@@ -179,43 +187,6 @@ function ShopContent() {
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-
-              {totalPages > 1 && (
-                <div className="mt-10 flex justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
-                  >
-                    Trước
-                  </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      onClick={() => setCurrentPage(page)}
-                      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? "bg-emerald-600 text-white"
-                          : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
-                  >
-                    Sau
-                  </button>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -224,14 +195,15 @@ function ShopContent() {
   );
 }
 
-// Next.js App Router yêu cầu bọc useSearchParams trong Suspense
 export default function ShopPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
+        </div>
+      }
+    >
       <ShopContent />
     </Suspense>
   );
