@@ -1,34 +1,34 @@
 'use client';
 
-import { authApi } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useActionState, useEffect } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { loginAction, type LoginActionState } from './actions';
 
 export default function LoginPage() {
 	const router = useRouter();
 	const { login } = useAuth();
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [error, setError] = useState('');
-	const [submitting, setSubmitting] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError('');
-		setSubmitting(true);
-		try {
-			const response = await authApi.login({ email, password });
-			console.log(response.data);
-			localStorage.setItem('token', response.data.accessToken);
-			localStorage.setItem('user', JSON.stringify(response.data.user));
+	/**
+	 * useActionState (thay thế cho useFormState trong React 19)
+	 * state: Dữ liệu trả về từ Server Action (initialState là { success: false })
+	 * formAction: Hàm liên kết với thuộc tính 'action' của <form>
+	 * isPending: Trạng thái đang gửi yêu cầu (thay cho submitting manually)
+	 */
+	const [state, formAction, isPending] = useActionState<
+		LoginActionState,
+		FormData
+	>(loginAction, {
+		success: false,
+	});
+
+	useEffect(() => {
+		if (state?.success && state?.data) {
+			login(state.data.accessToken, state.data.user);
 			router.push('/');
-		} catch (error) {
-			console.log(error);
-			setError('Email hoặc mật khẩu không đúng. Vui lòng thử lại.');
 		}
-	};
+	}, [state, login, router]);
 
 	return (
 		<div className='mx-auto max-w-md px-4 py-12 sm:px-6 lg:py-16'>
@@ -36,44 +36,37 @@ export default function LoginPage() {
 				<h1 className='text-2xl font-bold text-slate-800'>Đăng nhập</h1>
 				<p className='mt-1 text-slate-600'>Chào mừng trở lại BikeShop</p>
 
-				{error && (
+				{/* Lỗi được trả về trực tiếp từ Server qua 'state' */}
+				{state?.error && (
 					<p className='mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600'>
-						{error}
+						{state.error}
 					</p>
 				)}
 
-				<form onSubmit={handleSubmit} className='mt-8 space-y-6'>
-					{/* Email */}
+				<form action={formAction} className='mt-8 space-y-6'>
 					<div>
 						<label className='block text-sm font-medium text-slate-700'>
 							Email
 						</label>
-
 						<input
+							name='email'
 							type='email'
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
+							required
 							className='mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
 							placeholder='email@example.com'
-							required
 						/>
 					</div>
-
-					{/* Password */}
 					<div>
 						<label className='block text-sm font-medium text-slate-700'>
 							Mật khẩu
 						</label>
-
 						<input
+							name='password'
 							type='password'
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
+							required
 							className='mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
 							placeholder='••••••••'
-							required
 						/>
-
 						<div className='mt-2 text-right'>
 							<Link
 								href='#'
@@ -83,13 +76,12 @@ export default function LoginPage() {
 							</Link>
 						</div>
 					</div>
-
 					<button
 						type='submit'
-						disabled={submitting}
-						className='w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
+						disabled={isPending}
+						className='w-full cursor-pointer rounded-xl bg-emerald-600 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
 					>
-						{submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+						{isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
 					</button>
 				</form>
 

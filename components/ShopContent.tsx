@@ -42,6 +42,7 @@ export default function ShopContent() {
 		const fetchProducts = async () => {
 			try {
 				const { data } = await productsApi.getAll();
+				console.log('data: ', data);
 				setProductsList(data ?? []);
 			} catch {
 				setProductsList([]);
