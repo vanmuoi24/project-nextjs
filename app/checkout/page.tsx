@@ -68,6 +68,7 @@ export default function CheckoutPage() {
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { id, value } = e.target;
+		console.log('id, val:', id, value);
 		setFormData((prev) => ({ ...prev, [id]: value }));
 	};
 
