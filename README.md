@@ -14,6 +14,12 @@ Initial setup of the basic layout including:
 - **Header**: Main navigation and branding.
 - **Footer**: Company information and links.
 
+### Homepage & Components
+Development of the homepage user interface and core reusable components:
+- **Navbar**: Responsive navigation bar with search and categories.
+- **Product Card**: Card component for displaying bicycle details.
+- **Category Filter**: Filter component for browsing by bicycle type.
+
 ## Getting Started
 
 First, run the development server:
