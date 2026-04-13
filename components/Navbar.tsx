@@ -11,7 +11,6 @@ const navLinks = [
 	{ href: '/shop', label: 'Cửa hàng' },
 	{ href: '/cart', label: 'Giỏ hàng' },
 	{ href: '/profile', label: 'Tài khoản' },
-	{ href: '/admin', label: 'Admin' },
 ];
 
 export default function Navbar() {
@@ -143,6 +142,13 @@ export default function Navbar() {
 											>
 												Tài khoản
 											</Link>
+											<Link
+												href='/admin'
+												onClick={() => setUserMenuOpen(false)}
+												className='block px-3 py-2 text-sm text-slate-600 hover:bg-slate-50'
+											>
+												Trang admin
+											</Link>
 											<button
 												type='button'
 												onClick={() => {
@@ -232,6 +238,13 @@ export default function Navbar() {
 									className='rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-50'
 								>
 									Tài khoản
+								</Link>
+								<Link
+									href='/admin'
+									onClick={() => setMobileMenuOpen(false)}
+									className='rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-50'
+								>
+									Trang admin
 								</Link>
 								<button
 									type='button'

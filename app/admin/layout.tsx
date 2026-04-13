@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AdminAuthGate } from '@/components/AdminAuthGate';
 
 const navItems = [
   { href: "/admin", label: "Tổng quan" },
@@ -13,6 +14,7 @@ export default function AdminLayout({
 	children: React.ReactNode;
 }) {
 	return (
+		<AdminAuthGate>
 		<div className='min-h-screen bg-slate-100'>
 			<aside className='fixed left-0 top-0 z-40 h-screen w-56 border-r border-slate-200 bg-white'>
 				<div className='flex h-16 items-center gap-2 border-b border-slate-200 px-4'>
@@ -44,5 +46,6 @@ export default function AdminLayout({
 				<div className='p-6 lg:p-8'>{children}</div>
 			</main>
 		</div>
+		</AdminAuthGate>
 	);
 }

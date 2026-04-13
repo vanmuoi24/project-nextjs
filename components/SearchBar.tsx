@@ -1,30 +1,22 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
 interface SearchBarProps {
   onClose?: () => void;
   className?: string;
   initialQuery?: string;
 }
-
 export default function SearchBar({ onClose, className = "", initialQuery = "" }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
-
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      router.push(`/shop?q=${encodeURIComponent(query.trim())}`);
-      onClose?.();
-    }
+    const trimmed = query.trim();
+    router.push(trimmed ? `/shop?q=${encodeURIComponent(trimmed)}` : "/shop");
+    onClose?.();
   };
-
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <input

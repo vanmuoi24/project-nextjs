@@ -1,4 +1,24 @@
+# Bicycle Buy - Next.js Project
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Project Structure
+This project follows a standard Next.js 14+ structure with the App Router:
+- `app/`: Contains the application's routes and global layouts.
+- `components/`: Reusable UI components.
+- `public/`: Static assets like images and fonts.
+- `lib/`: Utility functions and API clients.
+
+### Core Layout
+Initial setup of the basic layout including:
+- **Header**: Main navigation and branding.
+- **Footer**: Company information and links.
+
+### Homepage & Components
+Development of the homepage user interface and core reusable components:
+- **Navbar**: Responsive navigation bar with search and categories.
+- **Product Card**: Card component for displaying bicycle details.
+- **Category Filter**: Filter component for browsing by bicycle type.
 
 ## Getting Started
 

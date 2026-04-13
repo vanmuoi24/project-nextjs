@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductDetail from '@/components/ProductDetail';
 import type { ProductResponse } from '@/lib/api';
 
-const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 async function getProduct(id: string): Promise<ProductResponse | null> {
 	console.log('Fetching at:', new Date().toISOString());

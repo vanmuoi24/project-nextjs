@@ -2,15 +2,14 @@
 import Link from "next/link";
 import type { ProductResponse } from "@/lib/api/products";
 import Image from "next/image";
-
-function formatPrice(price: number) {
+function formatPrice(price: number | string) {
+  const n = typeof price === "number" ? price : Number(price);
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
-  }).format(price);
+  }).format(Number.isFinite(n) ? n : 0);
 }
-
 interface ProductCardProps {
   product: ProductResponse;
 }

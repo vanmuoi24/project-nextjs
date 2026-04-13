@@ -1,7 +1,5 @@
 "use client";
 
-import { categories } from "@/data/categories";
-
 const priceRanges = [
   { id: "all", label: "Tất cả", min: 0, max: Infinity },
   { id: "under5", label: "Dưới 5 triệu", min: 0, max: 5_000_000 },
@@ -10,9 +8,14 @@ const priceRanges = [
   { id: "over30", label: "Trên 30 triệu", min: 30_000_000, max: Infinity },
 ];
 
-const brands = ["Giant", "Trek", "Specialized", "Cannondale", "Marin"];
+type FilterCategory = {
+  id: string;
+  name: string;
+};
 
 interface FilterSidebarProps {
+  categories: FilterCategory[];
+  brands: string[];
   selectedCategory: string | null;
   selectedPriceRange: string | null;
   selectedBrands: string[];
@@ -22,6 +25,8 @@ interface FilterSidebarProps {
 }
 
 export default function FilterSidebar({
+  categories,
+  brands,
   selectedCategory,
   selectedPriceRange,
   selectedBrands,

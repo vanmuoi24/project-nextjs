@@ -21,6 +21,33 @@ function productBrand(p: ProductResponse): string {
 	return p.categoryRelation?.name ?? p.category ?? '';
 }
 
+function toNumber(value: unknown): number {
+	if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+	if (typeof value === 'string') {
+		const n = Number(value);
+		return Number.isFinite(n) ? n : 0;
+	}
+	return 0;
+}
+
+function normalizeProduct(p: ProductResponse): ProductResponse {
+	return {
+		...p,
+		// Backend đôi khi trả string (ví dụ "6550000.00")
+		price: toNumber((p as unknown as { price?: unknown }).price),
+		quantity: toNumber((p as unknown as { quantity?: unknown }).quantity),
+		description: (p as unknown as { description?: unknown }).description
+			? String((p as unknown as { description?: unknown }).description)
+			: '',
+	};
+}
+
+function productCategoryId(p: ProductResponse): string | null {
+	if (p.categoryRelation?.slug) return p.categoryRelation.slug;
+	if (p.categoryRelation?.id != null) return String(p.categoryRelation.id);
+	return p.category || null;
+}
+
 export default function ShopContent() {
 	const searchParams = useSearchParams();
 	const q = searchParams.get('q') ?? '';
@@ -43,7 +70,7 @@ export default function ShopContent() {
 			try {
 				const { data } = await productsApi.getAll();
 				console.log('data: ', data);
-				setProductsList(data ?? []);
+				setProductsList((data ?? []).map(normalizeProduct));
 			} catch {
 				setProductsList([]);
 			} finally {
@@ -55,7 +82,30 @@ export default function ShopContent() {
 
 	useEffect(() => {
 		setSearchQuery(q);
+		setCurrentPage(1);
 	}, [q]);
+
+	const availableCategories = useMemo(() => {
+		const seen = new Map<string, string>();
+		for (const product of productsList) {
+			const id = productCategoryId(product);
+			const name = product.categoryRelation?.name ?? product.category ?? '';
+			if (id && name && !seen.has(id)) {
+				seen.set(id, name);
+			}
+		}
+		return Array.from(seen.entries()).map(([id, name]) => ({ id, name }));
+	}, [productsList]);
+
+	const availableBrands = useMemo(() => {
+		return Array.from(
+			new Set(
+				productsList
+					.map((product) => productBrand(product).trim())
+					.filter(Boolean),
+			),
+		).sort((a, b) => a.localeCompare(b, 'vi'));
+	}, [productsList]);
 
 	const filteredProducts = useMemo(() => {
 		let list = [...productsList];
@@ -75,7 +125,8 @@ export default function ShopContent() {
 				(p) =>
 					p.category === selectedCategory ||
 					p.categoryRelation?.slug === selectedCategory ||
-					String(p.categoryRelation?.id) === selectedCategory,
+					String(p.categoryRelation?.id) === selectedCategory ||
+					productBrand(p) === selectedCategory,
 			);
 		}
 
@@ -100,6 +151,13 @@ export default function ShopContent() {
 	]);
 
 	const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+	useEffect(() => {
+		// Nếu số trang giảm (do search/filter), đưa currentPage về giới hạn hợp lệ
+		setCurrentPage((p) => {
+			const safeTotal = Math.max(1, totalPages || 1);
+			return Math.min(Math.max(1, p), safeTotal);
+		});
+	}, [totalPages]);
 	const paginatedProducts = useMemo(() => {
 		const start = (currentPage - 1) * ITEMS_PER_PAGE;
 		return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
@@ -125,6 +183,8 @@ export default function ShopContent() {
 
 			<div className='mt-8 flex flex-col gap-8 lg:flex-row'>
 				<FilterSidebar
+					categories={availableCategories}
+					brands={availableBrands}
 					selectedCategory={selectedCategory}
 					selectedPriceRange={selectedPriceRange}
 					selectedBrands={selectedBrands}

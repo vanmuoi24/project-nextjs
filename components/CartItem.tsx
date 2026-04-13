@@ -27,14 +27,13 @@ export default function CartItem({
   onRemove,
 }: CartItemProps) {
   const subtotal = product.price * quantity;
-
+console.log(product)
   return (
     <div className="flex gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100 sm:h-28 sm:w-28">
-        <Image
+        <img
           src={product.image}
           alt={product.name}
-          fill
           className="object-cover"
           sizes="112px"
         />
