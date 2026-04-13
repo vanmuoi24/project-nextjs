@@ -15,6 +15,8 @@ export interface OrderItemResponse {
   productName?: string;
   quantity: number;
   totalPrice: number;
+
+  
   /** price * quantity */
   subtotal?: number;
 }
@@ -22,11 +24,12 @@ export interface OrderItemResponse {
 export interface OrderResponse {
   id: number;
   userId: number;
-  userEmail?: string;
-  userName?: string;
+  customerEmail
+?: string;
+  customerName?: string;
   /** Địa chỉ giao hàng */
   shippingAddress?: string;
-  phone?: string;
+  customerPhone?: string;
   status: OrderStatus;
   totalAmount: number;
   items: OrderItemResponse[];

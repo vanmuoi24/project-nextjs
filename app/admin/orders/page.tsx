@@ -108,10 +108,10 @@ export default function AdminOrdersPage() {
                   <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50/50">
                     <td className="p-3 font-medium text-slate-800">#{order.id}</td>
                     <td className="p-3 text-slate-600">
-                      {order.userName ?? order.userEmail ?? `User #${order.userId}`}
+                      {order.customerName ?? order.customerEmail ?? `Khách hàng #${order.userId}`}
                     </td>
                     <td className="p-3 font-medium text-slate-800">
-                      {formatPrice(order.total)}
+                      {formatPrice(order.totalAmount)}
                     </td>
                     <td className="p-3">
                       <span

@@ -3,7 +3,6 @@ import Link from "next/link";
 const navItems = [
   { href: "/admin", label: "Tổng quan" },
   { href: "/admin/orders", label: "Quản lý đơn hàng" },
-
   { href: "/admin/products", label: "Quản lý sản phẩm" },
   { href: "/admin/categories", label: "Quản lý danh mục" },
 ];

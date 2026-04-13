@@ -131,15 +131,15 @@ export default function AdminOrderDetailPage() {
         <dl className="mt-3 space-y-1 text-sm">
           <div className="flex justify-between">
             <dt className="text-slate-500">Tên</dt>
-            <dd className="font-medium text-slate-800">{order.userName ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{order.customerName ?? "—"}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">Email</dt>
-            <dd className="font-medium text-slate-800">{order.userEmail ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{order.customerEmail ?? "—"}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">Số điện thoại</dt>
-            <dd className="font-medium text-slate-800">{order.phone ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{order.customerPhone ?? "—"}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">Địa chỉ giao hàng</dt>
@@ -167,17 +167,17 @@ export default function AdminOrderDetailPage() {
                 </td>
                 <td className="py-2 pr-2 text-right text-slate-600">{item.quantity}</td>
                 <td className="py-2 pr-2 text-right text-slate-600">
-                  {formatPrice(item.price)}
+                  {formatPrice(item.totalPrice)}
                 </td>
                 <td className="py-2 text-right font-medium text-slate-800">
-                  {formatPrice((item.subtotal ?? item.price * item.quantity))}
+                  {formatPrice((item.subtotal ?? item.totalPrice * item.quantity))}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="mt-3 flex justify-end gap-2 border-t border-slate-200 pt-3 text-base font-semibold text-slate-800">
-          Tổng cộng: <span className="text-emerald-600">{formatPrice(order.total)}</span>
+          Tổng cộng: <span className="text-emerald-600">{formatPrice(order.totalAmount)}</span>
         </p>
       </div>
 
